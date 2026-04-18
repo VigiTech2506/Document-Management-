@@ -1,0 +1,101 @@
+.body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg,#ede9fe,#c4b5fd,#ddd6fe);
+}
+
+.login-card {
+  width: 380px;
+  padding: 45px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 20px 40px rgba(88, 28, 135, 0.15);
+  text-align: center;
+  transition: 0.3s;
+}
+
+.login-card:hover {
+  transform: translateY(-3px);
+}
+
+.logo {
+  width: 75px;
+  height: 75px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#a78bfa,#7c3aed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  margin-bottom: 18px;
+}
+
+.logo img {
+  width: 110px;
+}
+
+h1 {
+  font-size: 30px;
+  color: #4c1d95;
+}
+
+.subtitle {
+  color: #6b7280;
+  margin-bottom: 32px;
+}
+
+.login-method-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+  justify-content: center;
+}
+
+.method-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 2px solid #8b5cf6;
+  background: transparent;
+  color: #8b5cf6;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.method-btn.active {
+  background: linear-gradient(135deg,#8b5cf6,#7c3aed);
+  color: white;
+  border-color: #8b5cf6;
+}
+
+.method-btn:hover {
+  background: linear-gradient(135deg,#8b5cf6,#7c3aed);
+  color: white;
+}
+
+.input-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+select, input {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f5f3ff;
+  outline: none;
+}
+
+.otpbtn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg,#8b5cf6,#7c3aed);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}

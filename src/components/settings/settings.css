@@ -1,0 +1,93 @@
+.loan-card {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border-radius: 12px;
+  background-color: #fff;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.loan-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.loan-subtext {
+  color: #555;
+  font-size: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.loan-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.apply-btn,
+.emi-btn {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.apply-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.emi-btn {
+  background-color: white;
+  color: #007bff;
+  border: 2px solid #007bff;
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 2rem 0;
+}
+
+.loan-details {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.loan-details div h3 {
+  color: #007bff;
+  margin-bottom: 0.25rem;
+}
+
+.loan-details div p {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+/* Responsive for mobile */
+@media (max-width: 600px) {
+  .loan-card {
+    padding: 1.5rem 1rem;
+  }
+
+  .loan-title {
+    font-size: 1.5rem;
+  }
+
+  .loan-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .loan-details {
+    flex-direction: column;
+    align-items: center;
+  }
+}
