@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Drawer,
   List,
@@ -7,6 +7,9 @@ import {
   ListItemIcon,
   ListItemText,
   Toolbar,
+  useMediaQuery,
+  useTheme,
+  IconButton,
 } from "@mui/material";
 
 import {
@@ -16,6 +19,7 @@ import {
   Category as CategoryIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
+  Menu as MenuIcon,
 } from "@mui/icons-material";
 
 import { Link, useLocation } from "react-router-dom";
@@ -35,19 +39,43 @@ const menuItems = [
 
 const Sidebar = () => {
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleDrawerToggle = () => {
+    setMobileOpen(!mobileOpen);
+  };
 
   return (
-    <Drawer
-      variant="permanent"
-      sx={{
-        width: drawerWidth,
-        "& .MuiDrawer-paper": {
+    <>
+      {isMobile && (
+        <IconButton
+          color="black"
+          aria-label="open drawer"
+          edge="start"
+          onClick={handleDrawerToggle}
+          sx={{ mr: 2, position: 'absolute', top: 10, left: 10, zIndex: 1200 }}
+        >
+          <MenuIcon />
+        </IconButton>
+      )}
+      <Drawer
+        variant={isMobile ? "temporary" : "permanent"}
+        open={isMobile ? mobileOpen : true}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
           width: drawerWidth,
-          boxSizing: "border-box",
-          background: "linear-gradient(135deg,#8b5cf6,#7c3aed)",
-          color: "white",
-        },
-      }}
+          "& .MuiDrawer-paper": {
+            width: drawerWidth,
+            boxSizing: "border-box",
+            background: "linear-gradient(135deg,#8b5cf6,#7c3aed)",
+            color: "white",
+          },
+        }}
     >
       <Toolbar />
 
@@ -107,8 +135,7 @@ const Sidebar = () => {
           );
         })}
       </List>
-    </Drawer>
-  );
+    </Drawer>    </>  );
 };
 
 export default Sidebar;

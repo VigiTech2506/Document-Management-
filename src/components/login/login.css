@@ -4,10 +4,12 @@
   justify-content: center;
   align-items: center;
   background: linear-gradient(135deg,#ede9fe,#c4b5fd,#ddd6fe);
+  padding: 20px;
 }
 
 .login-card {
   width: 380px;
+  max-width: 90%;
   padding: 45px;
   border-radius: 18px;
   background: rgba(255,255,255,0.8);
@@ -88,6 +90,8 @@ select, input {
   border: 1px solid #e5e7eb;
   background: #f5f3ff;
   outline: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .otpbtn {
@@ -98,4 +102,48 @@ select, input {
   color: #fff;
   border: none;
   cursor: pointer;
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .login-card {
+    padding: 30px 20px;
+    width: 100%;
+    max-width: 350px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .logo {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 15px;
+  }
+
+  .logo img {
+    width: 90px;
+  }
+
+  .login-method-selector {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .method-btn {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  .input-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  select, input {
+    padding: 14px;
+  }
+}
 }

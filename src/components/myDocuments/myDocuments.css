@@ -10,6 +10,7 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: auto; /* For horizontal scroll on mobile */
 }
 
 .myDocumentsTableContainer {
@@ -22,6 +23,8 @@
 
 .myDocumentsTableContainer table {
   min-height: 0;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .paginationBar {
@@ -31,4 +34,26 @@
   width: 100%;
   z-index: 2;
   background: #f5f5f5;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .myDocumentsWrapper {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .myDocumentsScrollArea {
+    overflow-x: auto;
+  }
+
+  .myDocumentsTableContainer table {
+    font-size: 14px;
+  }
+
+  .myDocumentsTableContainer th,
+  .myDocumentsTableContainer td {
+    padding: 8px 4px;
+    white-space: nowrap;
+  }
 }

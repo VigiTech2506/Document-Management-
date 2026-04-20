@@ -1,279 +1,203 @@
 import * as React from "react";
 import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Slide,
-  IconButton,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  TextField,
-  Box,
-  Typography,
-  FormControlLabel,
-  RadioGroup,
-  Radio,
-  FormLabel,
+  Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  Slide, IconButton, FormControl, InputLabel, Select, MenuItem,
+  TextField, Box, Typography, FormControlLabel, RadioGroup,
+  Radio, FormLabel
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import documentService from "../../services/documentService";
 import { DocumentContext } from "../../context/DocumentContext";
 
-const Transition = React.forwardRef(function Transition(props, ref) {
-  return <Slide direction="up" ref={ref} {...props} />;
-});
+const Transition = React.forwardRef((props, ref) => (
+  <Slide direction="up" ref={ref} {...props} />
+));
+
+const initialState = {
+  file: null,
+  id: null,
+  name: "",
+  category: "Aadhar",
+  type: "permanent",
+  expiry: "",
+};
 
 export default function UploadDocument({ open, onClose, document }) {
   const { refreshDocuments } = React.useContext(DocumentContext);
-  const [file, setFile] = React.useState(null);
-  const [documentId, setDocumentId] = React.useState(null);
-  const [documentName, setDocumentName] = React.useState("");
-  const [category, setCategory] = React.useState("Aadhar");
-  const [type, setType] = React.useState("permanent");
-  const [expiryDate, setExpiryDate] = React.useState("");
+  const [state, setState] = React.useState(initialState);
   const [loading, setLoading] = React.useState(false);
-  const [isEditMode, setIsEditMode] = React.useState(false);
 
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files[0];
-    setFile(selectedFile);
-    // Auto-fill document name if empty
-    if (!documentName && selectedFile) {
-      setDocumentName(selectedFile.name.split(".")[0]);
-    }
+  const isEditMode = Boolean(document);
+
+  const updateState = (key, value) => {
+    setState((prev) => ({ ...prev, [key]: value }));
   };
 
+  // Populate form
   React.useEffect(() => {
-    if (document && open) {
-      setDocumentId(document.id);
-      setDocumentName(document.doc_name || "");
-      setCategory(document.category || "Aadhar");
-      const normalizedType = document.doc_type ? document.doc_type.toLowerCase() : "permanent";
-      setType(normalizedType === "temporary" ? "temporary" : "permanent");
-      setExpiryDate(
-        normalizedType === "temporary" && document.expiry_date && document.expiry_date !== "0000-00-00"
+    if (!open) return;
+
+    if (document) {
+      const isTemp = document.doc_type?.toLowerCase() === "temporary";
+
+      setState({
+        file: null,
+        id: document.id,
+        name: document.doc_name || "",
+        category: document.category || "Aadhar",
+        type: isTemp ? "temporary" : "permanent",
+        expiry: isTemp && document.expiry_date !== "0000-00-00"
           ? document.expiry_date
-          : ""
-      );
-      setIsEditMode(true);
-      setFile(null);
-    } else if (!document) {
-      setDocumentId(null);
-      setDocumentName("");
-      setCategory("Aadhar");
-      setType("permanent");
-      setExpiryDate("");
-      setIsEditMode(false);
-      setFile(null);
+          : "",
+      });
+    } else {
+      setState(initialState);
     }
   }, [document, open]);
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    updateState("file", file);
+
+    if (!state.name && file) {
+      updateState("name", file.name.split(".")[0]);
+    }
+  };
+
+  const resetForm = () => setState(initialState);
+
   const handleUpload = async () => {
-    if (!documentName.trim()) return alert("Please enter a document name");
+    if (!state.name.trim()) return alert("Enter document name");
+    if (!isEditMode && !state.file) return alert("Select a file");
+
     setLoading(true);
 
     try {
-      if (isEditMode && !file) {
-        const updateData = {
-          name: documentName.trim(),
-          category,
-          document_type: type,
-          expiry_date: type === "temporary" ? expiryDate : null,
-        };
-        await documentService.updateDocument(documentId, updateData);
+      if (isEditMode && !state.file) {
+        await documentService.updateDocument(state.id, {
+          name: state.name,
+          category: state.category,
+          document_type: state.type,
+          expiry_date: state.type === "temporary" ? state.expiry : null,
+        });
       } else {
-        if (!file) return alert("Please select a file");
         const formData = new FormData();
-        formData.append("file", file);
-        formData.append("name", documentName.trim());
-        formData.append("category", category);
-        formData.append("document_type", type);
-        if (type === "temporary") {
-          formData.append("expiry_date", expiryDate);
+        formData.append("file", state.file);
+        formData.append("name", state.name);
+        formData.append("category", state.category);
+        formData.append("document_type", state.type);
+
+        if (state.type === "temporary") {
+          formData.append("expiry_date", state.expiry);
         }
-        if (isEditMode && documentId) {
-          formData.append("document_id", documentId);
+        if (isEditMode) {
+          formData.append("document_id", state.id);
         }
+
         await documentService.uploadDocument(formData);
       }
 
-      setFile(null);
-      setDocumentName("");
-      setExpiryDate("");
-      setCategory("Aadhar");
-      setType("permanent");
-      setDocumentId(null);
-      setIsEditMode(false);
-
+      resetForm();
       refreshDocuments();
       onClose();
-    } catch (error) {
-      console.error("Upload failed:", error);
-      alert(error.message || "Failed to upload document. Please try again.");
+    } catch (err) {
+      alert(err.message || "Upload failed");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      TransitionComponent={Transition}
-      keepMounted
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle sx={{ background: "#8645db", color: "#fff", p: 1 }}>
+    <Dialog open={open} onClose={onClose} TransitionComponent={Transition} fullWidth maxWidth="sm">
+      
+      <DialogTitle sx={{ bgcolor: "#8645db", color: "#fff" }}>
         {isEditMode ? "Edit Document" : "Upload Document"}
-        <IconButton
-          onClick={onClose}
-          sx={{ position: "absolute", right: 8, top: 8 }}
-        >
+        <IconButton onClick={onClose} sx={{ position: "absolute", right: 8, top: 8 }}>
           <CloseIcon sx={{ color: "#fff" }} />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent dividers>
-        {/* Document Name */}
+      <DialogContent>
+
         <TextField
-          label="Name Of The Document"
+          label="Document Name"
           fullWidth
           size="small"
           sx={{ mb: 2 }}
-          value={documentName}
-          onChange={(e) => setDocumentName(e.target.value)}
-          required
+          value={state.name}
+          onChange={(e) => updateState("name", e.target.value)}
         />
 
-        {/* Category */}
         <FormControl fullWidth size="small" sx={{ mb: 2 }}>
           <InputLabel>Category</InputLabel>
           <Select
-            value={category}
+            value={state.category}
             label="Category"
-            onChange={(e) => setCategory(e.target.value)}
+            onChange={(e) => updateState("category", e.target.value)}
           >
-            <MenuItem value="Aadhar">Aadhar</MenuItem>
-            <MenuItem value="Insurance">Insurance</MenuItem>
-            <MenuItem value="Driving License">Driving License</MenuItem>
-            <MenuItem value="Passport">Passport</MenuItem>
-            <MenuItem value="PAN Card">PAN Card</MenuItem>
-            <MenuItem value="Bank Statement">Bank Statement</MenuItem>
-            <MenuItem value="Utility Bill">Utility Bill</MenuItem>
-            <MenuItem value="Other">Other</MenuItem>
+            {["Aadhar","Insurance","Driving License","Passport","PAN Card","Bank Statement","Utility Bill","Other"]
+              .map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
           </Select>
         </FormControl>
 
-        {/* Document Type */}
-        <FormControl component="fieldset" sx={{ mb: 1 }}>
-          <FormLabel component="legend">Document Type</FormLabel>
+        <FormControl sx={{ mb: 2 }}>
+          <FormLabel>Document Type</FormLabel>
           <RadioGroup
             row
-            value={type}
+            value={state.type}
             onChange={(e) => {
-              setType(e.target.value);
-              // Clear expiry date when switching to permanent
-              if (e.target.value === "permanent") {
-                setExpiryDate("");
-              }
+              const val = e.target.value;
+              updateState("type", val);
+              if (val === "permanent") updateState("expiry", "");
             }}
           >
-            <FormControlLabel
-              value="permanent"
-              control={<Radio />}
-              label="Permanent"
-            />
-            <FormControlLabel
-              value="temporary"
-              control={<Radio />}
-              label="Temporary"
-            />
+            <FormControlLabel value="permanent" control={<Radio />} label="Permanent" />
+            <FormControlLabel value="temporary" control={<Radio />} label="Temporary" />
           </RadioGroup>
         </FormControl>
 
-        {/* Expiry Date - Only show for temporary documents */}
-        {type === "temporary" && (
-          <div>
-            <FormControl sx={{ mb: 1, width: "100%" }}>
-              <FormLabel component="legend" sx={{ mb: 1 }}>
-                Expiry Date
-              </FormLabel>
-              <TextField
-                type="date"
-                fullWidth
-                size="small"
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
-                inputProps={{
-                  min: new Date().toISOString().split("T")[0],
-                }}
-                sx={{ mb: 2 }}
-                required
-              />
-            </FormControl>
-          </div>
+        {state.type === "temporary" && (
+          <TextField
+            type="date"
+            fullWidth
+            size="small"
+            value={state.expiry}
+            onChange={(e) => updateState("expiry", e.target.value)}
+            sx={{ mb: 2 }}
+          />
         )}
 
-        {/* ✅ Custom Upload Button */}
         <Box>
           <Button
-            variant="outlined"
             component="label"
+            variant="outlined"
             startIcon={<UploadFileIcon />}
             fullWidth
-            sx={{ py: 1.5 }}
-            disabled={loading}
           >
-            {file ? file.name : "Upload Document"}
-            <input
-              type="file"
-              hidden
-              onChange={handleFileChange}
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-            />
+            {state.file ? state.file.name : "Upload File"}
+            <input hidden type="file" onChange={handleFileChange} />
           </Button>
 
-          {/* Show selected file */}
-          {file && (
-            <Typography variant="caption" sx={{ mt: 1, display: "block" }}>
-              Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-            </Typography>
-          )}
-
-          {isEditMode && !file && (
-            <Typography variant="caption" sx={{ mt: 1, display: "block", color: "rgba(0,0,0,0.6)" }}>
-              Existing document file will be kept unless you choose a new file.
+          {state.file && (
+            <Typography variant="caption">
+              {state.file.name}
             </Typography>
           )}
         </Box>
+
       </DialogContent>
 
       <DialogActions>
         <Button
           onClick={handleUpload}
           variant="contained"
-          sx={{ background: "#8645db" }}
-          disabled={
-            loading ||
-            !documentName.trim() ||
-            (type === "temporary" && !expiryDate)
-          }
+          disabled={loading || !state.name || (state.type === "temporary" && !state.expiry)}
         >
-          {loading
-            ? isEditMode
-              ? "Updating..."
-              : "Uploading..."
-            : isEditMode
-            ? "Update"
-            : "Upload"}
+          {loading ? "Please wait..." : isEditMode ? "Update" : "Upload"}
         </Button>
       </DialogActions>
+
     </Dialog>
   );
 }

@@ -139,18 +139,18 @@ const MyDocuments = () => {
                       : new Date(doc.expiry_date).toLocaleDateString()
                   }
                 </TableCell>
-                <TableCell>
+                <TableCell sx={{ display: 'flex', gap: 0.5 }}>
                   <Button
                     size="small"
                     onClick={() => handleViewDocument(doc)}
-                    sx={{ mr: 0.5, color: 'grey' }}
+                    sx={{ minWidth: 'auto', p: 0.5, color: 'grey' }}
                   >
                     <VisibilityIcon />
                   </Button>
                   <Button
                     size="small"
                     onClick={() => handleEditDocument(doc)}
-                    sx={{ mr: 0.5, color: 'grey' }}
+                    sx={{ minWidth: 'auto', p: 0.5, color: 'grey' }}
                   >
                     <EditIcon />
                   </Button>
@@ -158,6 +158,7 @@ const MyDocuments = () => {
                     size="small"
                     color="error"
                     onClick={() => handleDeleteDocument(doc.id)}
+                    sx={{ minWidth: 'auto', p: 0.5 }}
                   >
                     <DeleteOutlineIcon />
                   </Button>
