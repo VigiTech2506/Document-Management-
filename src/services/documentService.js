@@ -39,13 +39,6 @@ class DocumentService {
 
       const response = await fetch(apiUrl, {
         method: "GET",
-        headers: import.meta.env.DEV ? {
-          ...this.getAuthHeaders(),
-          "Content-Type": "application/json",
-        } : {
-          // No auth headers needed for external API
-          "Content-Type": "application/json",
-        },
       });
 
       if (!response.ok) {
@@ -59,35 +52,16 @@ class DocumentService {
     }
   }
 
-  // Get document by ID
-  async getDocumentById(documentId) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/documents/${documentId}`, {
-        method: "GET",
-        headers: this.getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch document");
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error("Get document error:", error);
-      throw error;
-    }
-  }
-
   // Update document
-  async updateDocument(documentId, updateData) {
+  async updateDocument(updateData) {
+          const apiUrl = import.meta.env.DEV 
+        ? '/api/external/updateDocument.php' 
+        : 'https://vigitechsolutions.com/test/API/updateDocument.php';
+
     try {
-      const response = await fetch(`${API_BASE_URL}/documents/${documentId}`, {
-        method: "PUT",
-        headers: {
-          ...this.getAuthHeaders(),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updateData),
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        body: updateData,
       });
 
       if (!response.ok) {
@@ -103,43 +77,33 @@ class DocumentService {
   }
 
   // Delete document
-  async deleteDocument(documentId) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/documents/${documentId}`, {
-        method: "DELETE",
-        headers: this.getAuthHeaders(),
-      });
+async deleteDocument(documentId) {
+  const apiUrl = import.meta.env.DEV 
+        ? '/api/external/deleteDocument.php' 
+        : 'https://vigitechsolutions.com/test/API/deleteDocument.php';
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Delete failed");
-      }
+  try {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        ...this.getAuthHeaders(),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({ id: documentId }),
+    });
 
-      return await response.json();
-    } catch (error) {
-      console.error("Delete document error:", error);
-      throw error;
+    const data = await response.json();
+
+    if (!response.ok || data.status !== "success") {
+      throw new Error(data.message || "Delete failed");
     }
+
+    return data;
+  } catch (error) {
+    console.error("Delete document error:", error);
+    throw error;
   }
-
-  // Download document
-  async downloadDocument(documentId) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/documents/${documentId}/download`, {
-        method: "GET",
-        headers: this.getAuthHeaders(),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to download document");
-      }
-
-      return response.blob();
-    } catch (error) {
-      console.error("Download document error:", error);
-      throw error;
-    }
-  }
+}
 
   // Get document categories
   getDocumentCategories() {

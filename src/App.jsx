@@ -13,11 +13,10 @@ function App() {
   return (
     <div>
       <DocumentProvider>
-        <Router>
+        <Router basename="/paperchime"> {/* ✅ FIX HERE */}
           <Routes>
-            {/* Login Page */}
             <Route path="/" element={<Login />} />
-            {/* Dashboard Layout */}
+
             <Route path="/dashboard" element={<Dashboard />}>
               <Route index element={<Home />} />
               <Route path="myDocuments" element={<MyDocuments />} />
@@ -26,25 +25,6 @@ function App() {
           </Routes>
         </Router>
       </DocumentProvider>
-
-      {/* WhatsApp Floating Button */}
-      {/* <a
-        href="https://wa.me/919121245032"
-        target="_blank"
-        rel="noopener noreferrer"
-        style={{
-          position: 'fixed',
-          bottom: '20px',
-          right: '20px',
-          zIndex: 100
-        }}
-      >
-        <img
-          src="https://www.diginweb.site/whatsapp.png"
-          alt="Chat with us on WhatsApp"
-          style={{ width: '60px', height: '60px' }}
-        />
-      </a> */}
     </div>
   );
 }

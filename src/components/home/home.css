@@ -57,6 +57,7 @@
   text-align: center;
   box-sizing: border-box;
   border:none;
+  cursor: pointer;
 }
 
 /* Documents */

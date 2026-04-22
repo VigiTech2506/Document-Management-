@@ -1,9 +1,23 @@
 import * as React from "react";
 import {
-  Button, Dialog, DialogActions, DialogContent, DialogTitle,
-  Slide, IconButton, FormControl, InputLabel, Select, MenuItem,
-  TextField, Box, Typography, FormControlLabel, RadioGroup,
-  Radio, FormLabel
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Slide,
+  IconButton,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  Box,
+  Typography,
+  FormControlLabel,
+  RadioGroup,
+  Radio,
+  FormLabel,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
@@ -21,6 +35,7 @@ const initialState = {
   category: "Aadhar",
   type: "permanent",
   expiry: "",
+  existingFile: "", // ✅ ADD
 };
 
 export default function UploadDocument({ open, onClose, document }) {
@@ -47,9 +62,11 @@ export default function UploadDocument({ open, onClose, document }) {
         name: document.doc_name || "",
         category: document.category || "Aadhar",
         type: isTemp ? "temporary" : "permanent",
-        expiry: isTemp && document.expiry_date !== "0000-00-00"
-          ? document.expiry_date
-          : "",
+        expiry:
+          isTemp && document.expiry_date !== "0000-00-00"
+            ? document.expiry_date
+            : "",
+        existingFile: document.file_path || "", // ✅ ADD THIS
       });
     } else {
       setState(initialState);
@@ -68,21 +85,31 @@ export default function UploadDocument({ open, onClose, document }) {
   const resetForm = () => setState(initialState);
 
   const handleUpload = async () => {
-    if (!state.name.trim()) return alert("Enter document name");
-    if (!isEditMode && !state.file) return alert("Select a file");
-
     setLoading(true);
 
     try {
-      if (isEditMode && !state.file) {
-        await documentService.updateDocument(state.id, {
-          name: state.name,
-          category: state.category,
-          document_type: state.type,
-          expiry_date: state.type === "temporary" ? state.expiry : null,
-        });
-      } else {
+      if (isEditMode) {
+        // ✅ UPDATE API (matches your PHP updateDocument.php)
         const formData = new FormData();
+        formData.append("id", state.id);
+        formData.append("doc_name", state.name);
+        formData.append("category", state.category);
+        formData.append("doc_type", state.type);
+        if (state.file) {
+          formData.append("document_file", state.file);
+        }
+
+        if (state.type === "temporary") {
+          formData.append("expiry_date", state.expiry || null);
+        } else {
+          formData.append("expiry_date", null);
+        }
+
+        await documentService.updateDocument(formData);
+      } else {
+        // ✅ CREATE API (your existing upload API fields)
+        const formData = new FormData();
+
         formData.append("file", state.file);
         formData.append("name", state.name);
         formData.append("category", state.category);
@@ -90,9 +117,6 @@ export default function UploadDocument({ open, onClose, document }) {
 
         if (state.type === "temporary") {
           formData.append("expiry_date", state.expiry);
-        }
-        if (isEditMode) {
-          formData.append("document_id", state.id);
         }
 
         await documentService.uploadDocument(formData);
@@ -109,17 +133,24 @@ export default function UploadDocument({ open, onClose, document }) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} TransitionComponent={Transition} fullWidth maxWidth="sm">
-      
+    <Dialog
+      open={open}
+      onClose={onClose}
+      TransitionComponent={Transition}
+      fullWidth
+      maxWidth="sm"
+    >
       <DialogTitle sx={{ bgcolor: "#8645db", color: "#fff" }}>
         {isEditMode ? "Edit Document" : "Upload Document"}
-        <IconButton onClick={onClose} sx={{ position: "absolute", right: 8, top: 8 }}>
+        <IconButton
+          onClick={onClose}
+          sx={{ position: "absolute", right: 8, top: 8 }}
+        >
           <CloseIcon sx={{ color: "#fff" }} />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent>
-
+      <DialogContent sx={{paddingTop: "20px !important"}}>
         <TextField
           label="Document Name"
           fullWidth
@@ -136,8 +167,11 @@ export default function UploadDocument({ open, onClose, document }) {
             label="Category"
             onChange={(e) => updateState("category", e.target.value)}
           >
-            {["Aadhar","Insurance","Driving License","Passport","PAN Card","Bank Statement","Utility Bill","Other"]
-              .map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+            {documentService.getDocumentCategories().map((c) => (
+              <MenuItem key={c} value={c}>
+                {c}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
@@ -152,8 +186,16 @@ export default function UploadDocument({ open, onClose, document }) {
               if (val === "permanent") updateState("expiry", "");
             }}
           >
-            <FormControlLabel value="permanent" control={<Radio />} label="Permanent" />
-            <FormControlLabel value="temporary" control={<Radio />} label="Temporary" />
+            <FormControlLabel
+              value="permanent"
+              control={<Radio />}
+              label="Permanent"
+            />
+            <FormControlLabel
+              value="temporary"
+              control={<Radio />}
+              label="Temporary"
+            />
           </RadioGroup>
         </FormControl>
 
@@ -179,25 +221,31 @@ export default function UploadDocument({ open, onClose, document }) {
             <input hidden type="file" onChange={handleFileChange} />
           </Button>
 
-          {state.file && (
+          {(state.file || state.existingFile) && (
             <Typography variant="caption">
-              {state.file.name}
+              {state.file
+                ? `New: ${state.file.name}`
+                : state.existingFile
+                  ? `Current: ${state.existingFile.split("/").pop()}`
+                  : "No file selected"}
             </Typography>
           )}
         </Box>
-
       </DialogContent>
 
       <DialogActions>
         <Button
           onClick={handleUpload}
           variant="contained"
-          disabled={loading || !state.name || (state.type === "temporary" && !state.expiry)}
+          disabled={
+            loading ||
+            !state.name ||
+            (state.type === "temporary" && !state.expiry)
+          }
         >
           {loading ? "Please wait..." : isEditMode ? "Update" : "Upload"}
         </Button>
       </DialogActions>
-
     </Dialog>
   );
 }

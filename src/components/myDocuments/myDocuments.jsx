@@ -11,18 +11,20 @@ import {
   CircularProgress,
   Typography,
   Box,
-  TablePagination
+  TablePagination,
 } from "@mui/material";
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import DownloadIcon from '@mui/icons-material/Download';
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import DownloadIcon from "@mui/icons-material/Download";
 import { DocumentContext } from "../../context/DocumentContext";
 import UploadPopup from "../dashboard/uploadDocument";
+import documentService from "../../services/documentService";
 import "./myDocuments.css";
 
 const MyDocuments = () => {
-  const { documents, loading, error, fetchDocuments, refreshDocuments } = useContext(DocumentContext);
+  const { documents, loading, error, fetchDocuments, refreshDocuments } =
+    useContext(DocumentContext);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openUpload, setOpenUpload] = useState(false);
@@ -51,13 +53,9 @@ const MyDocuments = () => {
     window.open(fullUrl, "_blank");
   };
 
-  const handleDeleteDocument = (documentId) => {
-    if (!window.confirm("Are you sure you want to delete this document?")) {
-      return;
-    }
-
-    console.log("Deleting document:", documentId);
-    refreshDocuments(); // Refresh the list
+  const handleDeleteDocument = async (documentId) => {
+    await documentService.deleteDocument(documentId);
+    refreshDocuments();
   };
 
   const handleChangePage = (event, newPage) => {
@@ -76,7 +74,12 @@ const MyDocuments = () => {
 
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        minHeight="200px"
+      >
         <CircularProgress />
       </Box>
     );
@@ -93,79 +96,112 @@ const MyDocuments = () => {
     );
   }
 
+  const formatDocType = (type) => {
+    if (!type) return "N/A";
+    return type.toLowerCase() === "permanent" ? "Permanent" : "Temporary";
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "N/A";
+    return new Date(date).toLocaleDateString();
+  };
+
+  const formatExpiry = (doc) => {
+    if (!doc.doc_type || doc.doc_type.toLowerCase() === "permanent") {
+      return "N/A";
+    }
+
+    if (!doc.expiry_date || doc.expiry_date === "0000-00-00") {
+      return "N/A";
+    }
+
+    return formatDate(doc.expiry_date);
+  };
+
+  const DocumentRow = ({ doc, onView, onEdit, onDelete }) => (
+    <TableRow key={doc.id}>
+      <TableCell>{doc.id}</TableCell>
+      <TableCell>{doc.doc_name || "N/A"}</TableCell>
+      <TableCell>{doc.category}</TableCell>
+      <TableCell>{formatDocType(doc.doc_type)}</TableCell>
+      <TableCell>{formatDate(doc.created_at)}</TableCell>
+      <TableCell>{formatExpiry(doc)}</TableCell>
+      <TableCell sx={{ display: "flex", gap: 0.5 }}>
+        <Button
+          onClick={() => onView(doc)}
+          sx={{ minWidth: "auto", p: 0.5, color: "grey" }}
+        >
+          <VisibilityIcon />
+        </Button>
+        <Button
+          onClick={() => onEdit(doc)}
+          sx={{ minWidth: "auto", p: 0.5, color: "grey" }}
+        >
+          <EditIcon />
+        </Button>
+        <Button
+          onClick={() => onDelete(doc.id)}
+          color="error"
+          sx={{ minWidth: "auto", p: 0.5 }}
+        >
+          <DeleteOutlineIcon />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
+
+  const tableHeaders = [
+    { label: "ID", key: "id" },
+    { label: "Document Name", key: "doc_name" },
+    { label: "Category", key: "category" },
+    { label: "Type", key: "doc_type" },
+    { label: "Uploaded Date", key: "created_at" },
+    { label: "Expiry Date", key: "expiry_date" },
+    { label: "Actions", key: "actions" },
+  ];
 
   return (
     <div className="myDocumentsWrapper">
       <div className="myDocumentsScrollArea">
         <TableContainer component={Paper} className="myDocumentsTableContainer">
           <Table stickyHeader>
-<TableHead>
-          <TableRow>
-            <TableCell sx={{ color: "white", fontWeight: "bold", backgroundColor: "#b57cff" }}>ID</TableCell>
-            <TableCell sx={{ color: "white", fontWeight: "bold", backgroundColor: "#b57cff" }}>Document Name</TableCell>
-            <TableCell sx={{ color: "white", fontWeight: "bold", backgroundColor: "#b57cff" }}>Category</TableCell>
-            <TableCell sx={{ color: "white", fontWeight: "bold", backgroundColor: "#b57cff" }}>Type</TableCell>
-            <TableCell sx={{ color: "white", fontWeight: "bold", backgroundColor: "#b57cff" }}>Uploaded Date</TableCell>
-            <TableCell sx={{ color: "white", fontWeight: "bold", backgroundColor: "#b57cff" }}>Expiry Date</TableCell>
-            <TableCell sx={{ color: "white", fontWeight: "bold", backgroundColor: "#b57cff" }}>Actions</TableCell>
-          </TableRow>
-        </TableHead>
-
-        <TableBody>
-          {documents.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={7} align="center">
-                <Typography>No documents found. Upload your first document!</Typography>
-              </TableCell>
-            </TableRow>
-          ) : (
-            displayedDocuments.map((doc, index) => (
-              <TableRow key={doc.id || index}>
-                <TableCell>{doc.id}</TableCell>
-                <TableCell>{doc.doc_name || 'N/A'}</TableCell>
-                <TableCell>{doc.category}</TableCell>
-                <TableCell>
-                  {doc.doc_type ? 
-                    (doc.doc_type === "Permanent" || doc.doc_type === "permanent" ? "Permanent" : "Temporary") : 
-                    "N/A"
-                  }
-                </TableCell>
-                <TableCell>{new Date(doc.created_at ).toLocaleDateString()}</TableCell>
-                <TableCell>
-                  {(doc.doc_type === "permanent" || doc.doc_type === "Permanent") 
-                    ? "N/A"
-                    : (!doc.expiry_date || doc.expiry_date === "0000-00-00" || doc.expiry_date === null)
-                      ? "N/A"
-                      : new Date(doc.expiry_date).toLocaleDateString()
-                  }
-                </TableCell>
-                <TableCell sx={{ display: 'flex', gap: 0.5 }}>
-                  <Button
-                    size="small"
-                    onClick={() => handleViewDocument(doc)}
-                    sx={{ minWidth: 'auto', p: 0.5, color: 'grey' }}
+            <TableHead>
+              <TableRow>
+                {tableHeaders.map((header) => (
+                  <TableCell
+                    key={header.key}
+                    sx={{
+                      color: "white",
+                      fontWeight: "bold",
+                      backgroundColor: "#b57cff",
+                    }}
                   >
-                    <VisibilityIcon />
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => handleEditDocument(doc)}
-                    sx={{ minWidth: 'auto', p: 0.5, color: 'grey' }}
-                  >
-                    <EditIcon />
-                  </Button>
-                  <Button
-                    size="small"
-                    color="error"
-                    onClick={() => handleDeleteDocument(doc.id)}
-                    sx={{ minWidth: 'auto', p: 0.5 }}
-                  >
-                    <DeleteOutlineIcon />
-                  </Button>
-                </TableCell>
+                    {header.label}
+                  </TableCell>
+                ))}
               </TableRow>
-            ))
-          )}
+            </TableHead>
+
+            <TableBody>
+              {documents.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center">
+                    <Typography>
+                      No documents found. Upload your first document!
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                displayedDocuments.map((doc) => (
+                  <DocumentRow
+                    key={doc.id}
+                    doc={doc}
+                    onView={handleViewDocument}
+                    onEdit={handleEditDocument}
+                    onDelete={handleDeleteDocument}
+                  />
+                ))
+              )}
             </TableBody>
           </Table>
         </TableContainer>
@@ -186,17 +222,17 @@ const MyDocuments = () => {
               backgroundColor: "#f5f5f5",
               "& .MuiTablePagination-toolbar": {
                 color: "#8645db",
-                fontWeight: "500"
+                fontWeight: "500",
               },
               "& .MuiIconButton-root": {
                 color: "#8645db",
                 "&:hover": {
-                  backgroundColor: "rgba(134, 69, 219, 0.1)"
-                }
+                  backgroundColor: "rgba(134, 69, 219, 0.1)",
+                },
               },
               "& .MuiSelect-select": {
-                color: "#8645db"
-              }
+                color: "#8645db",
+              },
             }}
           />
         </div>

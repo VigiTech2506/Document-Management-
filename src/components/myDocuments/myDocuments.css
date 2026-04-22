@@ -38,10 +38,6 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .myDocumentsWrapper {
-    height: auto;
-    min-height: 100vh;
-  }
 
   .myDocumentsScrollArea {
     overflow-x: auto;
