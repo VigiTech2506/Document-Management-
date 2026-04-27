@@ -9,7 +9,6 @@ import {
   Toolbar,
   useMediaQuery,
   useTheme,
-  IconButton,
 } from "@mui/material";
 
 import {
@@ -19,7 +18,6 @@ import {
   Category as CategoryIcon,
   Settings as SettingsIcon,
   Logout as LogoutIcon,
-  Menu as MenuIcon,
 } from "@mui/icons-material";
 
 import { Link, useLocation } from "react-router-dom";
@@ -37,53 +35,39 @@ const menuItems = [
   { text: "Logout", path: "/", icon: <LogoutIcon /> },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ open, onClose }) => {
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
 
   return (
-    <>
-      {isMobile && (
-        <IconButton
-          color="black"
-          aria-label="open drawer"
-          edge="start"
-          onClick={handleDrawerToggle}
-          sx={{ mr: 2, position: 'absolute', top: 10, left: 10, zIndex: 1200 }}
-        >
-          <MenuIcon />
-        </IconButton>
-      )}
-      <Drawer
-        variant={isMobile ? "temporary" : "permanent"}
-        open={isMobile ? mobileOpen : true}
-        onClose={handleDrawerToggle}
-        ModalProps={{
-          keepMounted: true, // Better open performance on mobile.
-        }}
-        sx={{
+    <Drawer
+      variant={isMobile ? "temporary" : "permanent"}
+      open={isMobile ? open : true}
+      onClose={onClose}
+      ModalProps={{
+        keepMounted: true, // Better open performance on mobile.
+      }}
+      sx={{
+        width: isMobile ? 0 : drawerWidth,
+        flexShrink: 0,
+        "& .MuiDrawer-paper": {
           width: drawerWidth,
-          "& .MuiDrawer-paper": {
-            width: drawerWidth,
-            boxSizing: "border-box",
-            background: "linear-gradient(135deg,#8b5cf6,#7c3aed)",
-            color: "white",
-          },
-        }}
+          boxSizing: "border-box",
+          background: "linear-gradient(135deg,#8b5cf6,#7c3aed)",
+          color: "white",
+          border: "none"
+        },
+      }}
     >
-      <Toolbar />
+      <Toolbar sx={{ minHeight: "60px !important" }} />
 
       <div
         style={{
-          fontSize: "30px",
+          fontSize: "24px",
           fontWeight: "bold",
-          paddingLeft: "18px",
+          paddingLeft: "20px",
+          marginBottom: "20px"
         }}
       >
         Paperchime
@@ -91,31 +75,36 @@ const Sidebar = () => {
 
       <List>
         {menuItems.map((item, index) => {
-          const isActive = location.pathname === item.path;
+          const isActive = item.path === "/dashboard" 
+            ? location.pathname === "/dashboard" 
+            : item.path !== "/" && location.pathname.startsWith(item.path);
 
           return (
             <ListItem key={index} disablePadding>
               <ListItemButton
                 component={Link}
                 to={item.path}
+                onClick={() => isMobile && onClose()}
                 sx={{
                   backgroundColor: isActive ? "#fff" : "transparent",
                   color: isActive ? "#7c3aed" : "white",
-                  margin: "4px 8px",
-                  borderRadius: "8px",
-                  boxShadow: isActive ? "0 4px 12px rgba(0,0,0,0.25)" : "none",
+                  margin: "4px 12px",
+                  borderRadius: "10px",
+                  boxShadow: isActive ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
+                  transition: "all 0.3s ease",
                   "&:hover": {
                     backgroundColor: isActive
                       ? "#fff"
-                      : "rgba(255,255,255,0.1)",
+                      : "rgba(255,255,255,0.15)",
                       color: isActive ? "#7c3aed" : "white",
+                      transform: "translateX(4px)"
                   },
                 }}
               >
                 <ListItemIcon
                   sx={{
                     color: isActive ? "#7c3aed" : "white",
-                    minWidth: "40px",
+                    minWidth: "36px",
                   }}
                 >
                   {item.icon}
@@ -126,7 +115,7 @@ const Sidebar = () => {
                   sx={{
                     "& .MuiTypography-root": {
                       fontSize: "14px",
-                      fontWeight: isActive ? "bold" : "normal",
+                      fontWeight: isActive ? "600" : "500",
                     },
                   }}
                 />
@@ -135,7 +124,8 @@ const Sidebar = () => {
           );
         })}
       </List>
-    </Drawer>    </>  );
+    </Drawer>
+  );
 };
 
 export default Sidebar;

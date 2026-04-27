@@ -23,6 +23,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import documentService from "../../services/documentService";
 import { DocumentContext } from "../../context/DocumentContext";
+import { useNotification } from "../../context/NotificationContext";
 
 const Transition = React.forwardRef((props, ref) => (
   <Slide direction="up" ref={ref} {...props} />
@@ -40,6 +41,7 @@ const initialState = {
 
 export default function UploadDocument({ open, onClose, document }) {
   const { refreshDocuments } = React.useContext(DocumentContext);
+  const { addNotification } = useNotification();
   const [state, setState] = React.useState(initialState);
   const [loading, setLoading] = React.useState(false);
 
@@ -122,11 +124,15 @@ export default function UploadDocument({ open, onClose, document }) {
         await documentService.uploadDocument(formData);
       }
 
+      addNotification(
+        isEditMode ? "Document updated successfully" : "Document uploaded successfully",
+        "success"
+      );
       resetForm();
       refreshDocuments();
       onClose();
     } catch (err) {
-      alert(err.message || "Upload failed");
+      addNotification(err.message || "Operation failed", "error");
     } finally {
       setLoading(false);
     }

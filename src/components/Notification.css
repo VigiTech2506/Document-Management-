@@ -1,0 +1,107 @@
+.notification-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 350px;
+  width: calc(100% - 40px);
+}
+
+.notification-item {
+  border-radius: 8px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  position: relative;
+  animation: slide-in 0.3s ease-out;
+  color: white;
+  /* Default text color for solid backgrounds */
+}
+
+.notification-item.success {
+  background-color: #008000;
+  /* Solid green */
+  border-left: 5px solid #059669;
+}
+
+.notification-item.error {
+  background-color: #ef4444;
+  /* Solid red */
+  border-left: 5px solid #dc2626;
+}
+
+.notification-item.info {
+  background-color: #3b82f6;
+  border-left: 5px solid #2563eb;
+}
+
+.notification-content {
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-message {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.notification-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.notification-close:hover {
+  color: white;
+}
+
+.notification-progress {
+  height: 4px;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.notification-progress::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  animation: progress-bar 3s linear forwards;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes progress-bar {
+  from {
+    width: 100%;
+  }
+
+  to {
+    width: 0%;
+  }
+}

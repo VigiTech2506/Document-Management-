@@ -20,6 +20,8 @@ import DownloadIcon from "@mui/icons-material/Download";
 import { DocumentContext } from "../../context/DocumentContext";
 import UploadPopup from "../dashboard/uploadDocument";
 import documentService from "../../services/documentService";
+import { useNotification } from "../../context/NotificationContext";
+import ConfirmModal from "../ConfirmModal";
 import "./myDocuments.css";
 
 const MyDocuments = () => {
@@ -29,6 +31,9 @@ const MyDocuments = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [openUpload, setOpenUpload] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [docToDelete, setDocToDelete] = useState(null);
+  const { addNotification } = useNotification();
 
   const handleEditDocument = (doc) => {
     setSelectedDoc(doc);
@@ -53,9 +58,22 @@ const MyDocuments = () => {
     window.open(fullUrl, "_blank");
   };
 
-  const handleDeleteDocument = async (documentId) => {
-    await documentService.deleteDocument(documentId);
-    refreshDocuments();
+  const handleDeleteDocument = (documentId) => {
+    setDocToDelete(documentId);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await documentService.deleteDocument(docToDelete);
+      addNotification("Document deleted successfully", "success");
+      refreshDocuments();
+    } catch (err) {
+      addNotification(err.message || "Failed to delete document", "error");
+    } finally {
+      setIsDeleteModalOpen(false);
+      setDocToDelete(null);
+    }
   };
 
   const handleChangePage = (event, newPage) => {
@@ -242,6 +260,15 @@ const MyDocuments = () => {
         open={openUpload}
         onClose={handleCloseUpload}
         document={selectedDoc}
+      />
+
+      <ConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Document"
+        message="Are you sure you want to delete this document?"
+        confirmText="Delete"
       />
     </div>
   );
